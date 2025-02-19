@@ -46,6 +46,26 @@ class Database
 		}
 	}
 
+	public function getColumsName(string $table) 
+	{
+		$query = $this->connection->prepare(
+			<<<SQL
+			SHOW COLUMNS FROM $this->base.$table;
+			SQL
+		);
+
+		if ($query->execute()) {
+			$columns = $query->fetchAll(PDO::FETCH_ASSOC);
+			$columnsName = [];
+			foreach ($columns as $column) {
+				$columnsName[] = $column['Field'];
+			}
+			return $columnsName;
+		} else {
+			throw new Exception($query->errorCode());
+		}
+	}
+
 	public function list(string $table): ?array
 	{
 		$data = null;
