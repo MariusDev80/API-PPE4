@@ -32,7 +32,7 @@ class Database
 	{
 		$this->host = "localhost";
 		$this->login = "root";
-		$this->passwd = "root";
+		$this->passwd = "";
 		$this->base = "ApiPPE4";
 		$this->connection();
 	}

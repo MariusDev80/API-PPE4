@@ -62,7 +62,7 @@ $app->get('/{table}/filter', function (Request $request, Response $response, $ar
         $queryParams = $request->getQueryParams();
         if($queryParams) {
             $columns = $db->getColumsName($args['table']);
-            $response->getBody()->write(json_encode());
+            $response->getBody()->write(json_encode(['test' => 'future feature']));
         } else {
             $table = $args['table'];
             $data = $db->list($table);
@@ -78,6 +78,12 @@ $app->get('/{table}/filter', function (Request $request, Response $response, $ar
         $response->withHeader('Content-Type', 'html/text');
     }
 
+    return $response;
+});
+
+$app->get('/login', function (Request $request, Response $response, $args) {
+    $body = $request->getBody();
+    $response->getBody()->write($body);
     return $response;
 });
 
