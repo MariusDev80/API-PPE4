@@ -1,12 +1,12 @@
 <?php
 
 use PPE4\Service\Database;
-use PPE4\Service\JwtService;
 use Slim\App;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Firebase\JWT\JWT;
 
-return function (App $app, Database $db, JwtService $jwtService) {
+return function (App $app, Database $db) {
     $app->get('/', function (Request $request, Response $response, $args) {
         $response->getBody()->write('Hello, World!');
         return $response;
@@ -41,7 +41,32 @@ return function (App $app, Database $db, JwtService $jwtService) {
         return $response;
     });
 
-    $app->get('/login', function(Request $request, Response $response, $args) use ($db, $jwtService) {
+    $app->get('/login/{type}/{login}/{password}', function(Request $request, Response $response, $args) use ($db) {
+        try {
+            $params = [
+                'login' => $args['login'],
+                'mp' => hash("MD5", $args['password'])
+            ];
+            $user = $db->findBy("personne_login", $params);
+
+            if($user) {
+                $fonction = $db->find($args["type"], $user["id"]) ? $args["type"] : null;
+            }
+
+            $payload = [
+                'exp' => time() + 3600,
+                'loggedInAs' => $user['id'],
+                'fonction' => $fonction
+            ];
+
+            $jwt = JWT::encode($payload, "API-KEY", "HS256");
+            $response->getBody()->write($jwt);
+        } catch(Exception $e) {
+            $response->getBody()->write($e->getMessage());
+            $response->withStatus(500);
+            $response->withHeader('Content-Type', 'html/text');
+        }
+
         return $response;
     });
 
@@ -103,5 +128,4 @@ return function (App $app, Database $db, JwtService $jwtService) {
 
         return $response;
     });
-
 };

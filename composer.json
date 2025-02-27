@@ -2,6 +2,7 @@
     "require": {
         "slim/slim": "4.*",
         "selective/basepath": "^2.2",
-        "slim/psr7": "^1.7"
+        "slim/psr7": "^1.7",
+        "firebase/php-jwt": "^6.11"
     }
 }

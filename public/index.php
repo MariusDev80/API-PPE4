@@ -6,12 +6,10 @@ use Selective\BasePath\BasePathMiddleware;
 use Slim\Factory\AppFactory;
 
 
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
-
-require_once __DIR__ . '/../src/Service/JwtService.php';
-$jwtService = new JwtService();
 
 require_once __DIR__ . '/../src/Service/Database.php';
 $db = new Database();
@@ -28,7 +26,7 @@ $app->add(new BasePathMiddleware($app));
 $app->addErrorMiddleware(true, true, true);
 
 $routes = require __DIR__ . '/../app/routes.php';
-$routes($app, $db, $jwtService);
+$routes($app, $db);
 
 // Run app
 $app->run();
