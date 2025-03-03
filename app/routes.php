@@ -1,10 +1,33 @@
 <?php
 
+use Firebase\JWT\Key;
 use PPE4\Service\Database;
 use Slim\App;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Firebase\JWT\JWT;
+
+function verifToken(Request $request) {
+    $token = str_contains($request->getHeader('Authorization')[0], "Bearer") ? substr($request->getHeader('Authorization')[0], 7) : null;
+
+    $returns = [
+        'payload' => null,
+        'error' => null
+    ];
+
+    if($token) {
+        try {
+            $returns['payload'] = (array)JWT::decode($token, new Key("API-KEY", "HS256"));
+        } catch(Exception $e) {
+            $returns['error'] = $e->getMessage();
+        }
+
+    } else {
+        $returns['error'] = "Unauthorized";
+    }
+
+    return $returns;
+}
 
 return function (App $app, Database $db) {
     $app->get('/', function (Request $request, Response $response, $args) {
@@ -24,19 +47,29 @@ return function (App $app, Database $db) {
     });
 
     $app->get('/table/{table}', function (Request $request, Response $response, $args) use ($db) {
-        try {
-            $table = $args['table'];
-            $data = $db->list($table);
-            $response->getBody()->write(json_encode($data));
-            $response->withStatus(200);
+        
+        $verif = verifToken($request);
 
-            return $response->withHeader('Content-Type', 'application/json');
-
-        } catch (Exception $e) {
-            $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
-            $response->withStatus(500);
+        if($verif['payload']) {
+            try {
+                $table = $args['table'];
+                $data = $db->list($table);
+                $response->getBody()->write(json_encode($data));
+                $response->withStatus(200);
+    
+                return $response->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->withStatus(500);
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            $response->getBody()->write($verif['error']);
+            $response->withStatus(401);
             $response->withHeader('Content-Type', 'html/text');
         }
+
 
         return $response;
     });
@@ -54,6 +87,7 @@ return function (App $app, Database $db) {
             }
 
             $payload = [
+                'iat' => time(),
                 'exp' => time() + 3600,
                 'loggedInAs' => $user['id'],
                 'fonction' => $fonction
@@ -70,40 +104,57 @@ return function (App $app, Database $db) {
         return $response;
     });
 
-    $app->delete('/delete/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {
-        try {
-            $table = $args['table'];
-            $id = $args['id'];
-            $db->delete($table, $id);
-            $response->getBody()->write(json_encode(['message' => 'Deleted']));
-            $response->withStatus(200);
+    $app->delete('/delete/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {   
+        
+        $verif = verifToken($request);
 
-            return $response->withHeader('Content-Type', 'application/json');
-
-        } catch (Exception $e) {
-            $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
-            $response->withStatus(500);
+        if($verif['payload']) {
+            try {
+                $table = $args['table'];
+                $id = $args['id'];
+                $db->delete($table, $id);
+                $response->getBody()->write(json_encode(['message' => 'Deleted']));
+                $response->withStatus(200);
+    
+                return $response->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->withStatus(500);
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            $response->getBody()->write($verif['error']);
+            $response->withStatus(401);
             $response->withHeader('Content-Type', 'html/text');
         }
-
+        
         return $response;
     });
 
     $app->put('put/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {
-        try {
-            $table = $args['table'];
-            $id = $args['id'];
-            $data = (array)$request->getParsedBody();
-            var_dump($data);
-            $db->edit($table, $id, $data);
-            $response->getBody()->write(json_encode(['message' => 'Updated']));
-            $response->withStatus(200);
+        
+        $verif = verifToken($request);
 
-            return $response->withHeader('Content-Type', 'application/json');
-
-        } catch (Exception $e) {
-            $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
-            $response->withStatus(500);
+        if($verif['payload']) {
+            try {
+                $table = $args['table'];
+                $id = $args['id'];
+                $data = (array)$request->getParsedBody();
+                $db->edit($table, $id, $data);
+                $response->getBody()->write(json_encode(['message' => 'Updated', 'object' => $db->find($table, $id)]));
+                $response->withStatus(200);
+    
+                return $response->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->withStatus(500);
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            $response->getBody()->write($verif['error']);
+            $response->withStatus(401);
             $response->withHeader('Content-Type', 'html/text');
         }
 
@@ -111,18 +162,27 @@ return function (App $app, Database $db) {
     });
 
     $app->post('/add/{table}', function(Request $request, Response $response, $args) use ($db) {
-        try {
-            $table = $args['table'];
-            $data = (array)$request->getParsedBody();
-            $db->add($table, $data);
-            $response->getBody()->write(json_encode(['message' => 'Added']));
-            $response->withStatus(200);
+        
+        $verif = verifToken($request);
 
-            return $response->withHeader('Content-Type', 'application/json');
-
-        } catch (Exception $e) {
-            $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
-            $response->withStatus(500);
+        if($verif['payload']) {
+            try {
+                $table = $args['table'];
+                $data = (array)$request->getParsedBody();
+                $id = $db->add($table, $data);
+                $response->getBody()->write(json_encode(['message' => 'Added', 'object' => $db->find($table, $id)]));
+                $response->withStatus(200);
+    
+                return $response->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->withStatus(500);
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            $response->getBody()->write($verif['error']);
+            $response->withStatus(401);
             $response->withHeader('Content-Type', 'html/text');
         }
 
