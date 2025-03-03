@@ -57,7 +57,7 @@ return function (App $app, Database $db) {
                 $response->getBody()->write(json_encode($data));
                 $response->withStatus(200);
     
-                return $response->withHeader('Content-Type', 'application/json');
+                $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
                 $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
@@ -187,5 +187,11 @@ return function (App $app, Database $db) {
         }
 
         return $response;
+    });
+
+    $app->get('/verifToken', function(Request $request, Response $response, $args) {
+        $verif = verifToken($request);
+        $response->getBody()->write(json_encode($verif));
+        return $response->withHeader('Content-Type', 'application/json');
     });
 };
