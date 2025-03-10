@@ -60,7 +60,7 @@ return function (App $app, Database $db) {
                 $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
-                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
                 $response->withStatus(500);
                 $response->withHeader('Content-Type', 'html/text');
             }
@@ -119,7 +119,7 @@ return function (App $app, Database $db) {
                 return $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
-                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
                 $response->withStatus(500);
                 $response->withHeader('Content-Type', 'html/text');
             }
@@ -132,7 +132,7 @@ return function (App $app, Database $db) {
         return $response;
     });
 
-    $app->put('put/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {
+    $app->put('/update/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {
         
         $verif = verifToken($request);
 
@@ -141,14 +141,17 @@ return function (App $app, Database $db) {
                 $table = $args['table'];
                 $id = $args['id'];
                 $data = (array)$request->getParsedBody();
+                if($table == "personne_login") {
+                    $data['mp'] = hash("MD5", $data['mp']);
+                }
                 $db->edit($table, $id, $data);
-                $response->getBody()->write(json_encode(['message' => 'Updated', 'object' => $db->find($table, $id)]));
+                $response->getBody()->write(json_encode(['message' => 'Updated', 'object' => $db->findBy($table, ['id' => $id])]));
                 $response->withStatus(200);
     
                 return $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
-                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
                 $response->withStatus(500);
                 $response->withHeader('Content-Type', 'html/text');
             }
@@ -169,6 +172,9 @@ return function (App $app, Database $db) {
             try {
                 $table = $args['table'];
                 $data = (array)$request->getParsedBody();
+                if($table == "personne_login") {
+                    $data['mp'] = hash("MD5", $data['mp']);
+                }
                 $id = $db->add($table, $data);
                 $response->getBody()->write(json_encode(['message' => 'Added', 'object' => $db->find($table, $id)]));
                 $response->withStatus(200);
@@ -176,7 +182,7 @@ return function (App $app, Database $db) {
                 return $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
-                $response->getBody()->write("<h2><strong>500 Internal Server Error</strong><h2>");
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
                 $response->withStatus(500);
                 $response->withHeader('Content-Type', 'html/text');
             }
@@ -191,7 +197,7 @@ return function (App $app, Database $db) {
 
     $app->get('/verifToken', function(Request $request, Response $response, $args) {
         $verif = verifToken($request);
-        $response->getBody()->write(json_encode($verif));
+        $response->getBody()->write(json_encode($verif['payload'] ? $verif['payload'] : $verif['error']));
         return $response->withHeader('Content-Type', 'application/json');
     });
 };

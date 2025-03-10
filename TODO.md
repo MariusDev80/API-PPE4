@@ -1,3 +1,11 @@
-# Ajouter la vérif de la fonction de l'utilisateur
+# ADMIN 
 
-# hasher le mp lorsqu'il est changé par une requete ou qu'une ligne est ajouté dans la base personne_login
+- tout les accès
+
+# INFIRMIERE EN CHEF
+
+
+# INFIRMIERE
+
+
+# PATIENT

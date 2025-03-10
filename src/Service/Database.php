@@ -123,6 +123,10 @@ class Database
 		if ($query->execute($params)) {
 			$row = $query->fetch(PDO::FETCH_ASSOC);
 			
+			if (!$row) {
+				return null;
+			}
+
 			return $row;
 		} else {
 			throw new Exception($query->errorCode());
@@ -189,7 +193,7 @@ class Database
 		}
 	}
 
-	public function add(string $table, array $values) : int 
+	public function add(string $table, array $values) : int
 	{
 		$queryStringValues = [];
 
@@ -219,7 +223,7 @@ class Database
 			throw new Exception($e->getMessage());
 		}
 		
-		return $this->connection->lastInsertId();
+		return $this->lastId($table)['id'];
 	}
 	
 	public function delete(string $table, int $id)
@@ -251,6 +255,19 @@ class Database
 		if ($query->execute()) {
 			$nb = $query->fetch(PDO::FETCH_ASSOC)["COUNT(*)"];
 			return $nb+1;
+		} else {
+			throw new Exception($query->errorCode());
+		}
+	}
+
+	public function lastId(string $table)
+	{
+		
+		$query = $this->connection->prepare("SELECT id FROM $this->base.".$table." ORDER BY id DESC LIMIT 1");
+
+		if ($query->execute()) {
+			$nb = $query->fetch(PDO::FETCH_ASSOC);
+			return $nb;
 		} else {
 			throw new Exception($query->errorCode());
 		}
