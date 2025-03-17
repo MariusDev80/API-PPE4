@@ -8,22 +8,47 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Firebase\JWT\JWT;
 
 function verifToken(Request $request) {
-    $token = str_contains($request->getHeader('Authorization')[0], "Bearer") ? substr($request->getHeader('Authorization')[0], 7) : null;
-
+    
     $returns = [
         'payload' => null,
         'error' => null
     ];
 
-    if($token) {
-        try {
-            $returns['payload'] = (array)JWT::decode($token, new Key("API-KEY", "HS256"));
-        } catch(Exception $e) {
-            $returns['error'] = $e->getMessage();
+    try {
+
+        $authHeaders = $request->getHeader('Authorization');
+        $token = null;
+
+        if ($authHeaders == null || count($authHeaders) == 0) {
+            $returns['error'] = "Unauthorized";
+            return $returns;
+        } 
+
+        if (count($authHeaders) == 1) {
+            $token = str_contains($request->getHeader('Authorization')[0], "Bearer") ? substr($authHeaders[0], 7) : $returns['error'] = "Header malformed";
+        } else {
+            foreach ($authHeaders as $header) {
+                if (str_contains($header, "Bearer ")) {
+                    $token = substr($authHeaders[0], 7);
+                    break;
+                }
+                $returns['error'] = "Header malformed";
+            }
         }
 
-    } else {
-        $returns['error'] = "Unauthorized";
+        if($token) {
+            try {
+                $returns['payload'] = (array)JWT::decode($token, new Key("API-KEY", "HS256"));
+            } catch(Exception $e) {
+                $returns['error'] = $e->getMessage();
+            }
+    
+        } else {
+            $returns['error'] = "Unauthorized";
+        }
+
+    } catch(Exception $e) {
+        $returns['error'] = $e->getMessage();
     }
 
     return $returns;
