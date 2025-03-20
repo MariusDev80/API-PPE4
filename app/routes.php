@@ -7,6 +7,47 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Firebase\JWT\JWT;
 
+const ACCESS = [
+    "administrateur" => [
+        "administrateur",
+        "badge",
+        "categ_soins",
+        "categorie_indisponibilite",
+        "chambre_forte",
+        "convalescence",
+        "indisponibilite",
+        "infirmiere",
+        "infirmiere_badge",
+        "lieu_convalescence",
+        "patient",
+        "personne",
+        "personne_login",
+        "soins",
+        "soins_visite",
+        "temoignage",
+        "token",
+        "type_soins",
+        "visite"
+    ], 
+    "chef" => [
+        "infirmiere",
+        "convalescence",
+        "patient",
+        "soins",
+        "soins_visite",
+        "visite",
+        "type_soins",
+        "temoignage"
+    ],
+    "infirmiere" => [
+        "visite"
+    ],
+    "patient" => [
+        "visite",
+        "temoignage"
+    ]
+];
+
 function verifToken(Request $request) {
     
     $returns = [
@@ -54,52 +95,234 @@ function verifToken(Request $request) {
     return $returns;
 }
 
+function hasAccess($payload, $table) {
+    return in_array($table,ACCESS[$payload['fonction']]);
+}
+
+function canModify($payload, $table, $id, $db) {
+    $data = $db->listHaving($table, "id", $id);
+
+    if($data[0][$payload['fonction']] == $payload["loggedInAs"]) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 return function (App $app, Database $db) {
     $app->get('/', function (Request $request, Response $response, $args) {
         $response->getBody()->write('Hello, World!');
         return $response;
     });
-
-    $app->get('/test', function (Request $request, Response $response, $args) {
-        $args = $request->getQueryParams();
-        if($args) {
-            $response->getBody()->write($args['value']);
-            return $response;
-        } else {
-            $response->getBody()->write('Hello World');
-        }
-        return $response;
-    });
-
-    $app->get('/table/{table}', function (Request $request, Response $response, $args) use ($db) {
+    
+    $app->get('/{table}/all', function (Request $request, Response $response, $args) use ($db) {
         
         $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $table = $args['table'];
+        $status = 200;
 
-        if($verif['payload']) {
+        if($payload && hasAccess($payload, $table)) {
             try {
-                $table = $args['table'];
-                $data = $db->list($table);
-                $response->getBody()->write(json_encode($data));
-                $response->withStatus(200);
+
+                if($payload['accessType'] == "restricted") {
+                    $data = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
+                } else {
+                    $data = $db->list($table);
+                }
+
+                $response->getBody()->write(json_encode($data ? $data : []));
     
                 $response->withHeader('Content-Type', 'application/json');
     
             } catch (Exception $e) {
                 $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
-                $response->withStatus(500);
                 $response->withHeader('Content-Type', 'html/text');
+                $status = 500;
             }
         } else {
-            $response->getBody()->write($verif['error']);
-            $response->withStatus(401);
-            $response->withHeader('Content-Type', 'html/text');
+            if($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
         }
 
 
-        return $response;
+        return $response->withStatus($status)->withStatus($status);
     });
 
-    $app->get('/login/{type}/{login}/{password}', function(Request $request, Response $response, $args) use ($db) {
+    $app->get('/{table}/{id}', function (Request $request, Response $response, $args) use ($db) {
+        
+        $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $table = $args['table'];
+        $status = 200;
+
+        if($payload && hasAccess($payload, $table)) {
+            try {
+
+                if($payload['accessType'] == "restricted") {
+                    $data = null;
+                    $req = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
+                    foreach($req as $key => $value) {
+                        if($value['id'] == $args['id']) {
+                            $data = $value;
+                            break;
+                        }
+                    }
+                } else {
+                    $data = $db->listHaving($table, "id", $args['id']);
+                }
+
+                $response->getBody()->write(json_encode($data ? $data : []));
+                
+    
+                $response->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
+                $status = 500;
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            if($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
+        }
+
+
+        return $response->withStatus($status);
+    });
+    
+    $app->delete('/{table}/delete/{id}', function(Request $request, Response $response, $args) use ($db) {   
+        
+        $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $table = $args['table'];
+        $status = 200;
+        
+        if($payload && hasAccess($payload, $table) && canModify($payload, $table, $args['id'], $db)) {
+            try {
+                $id = $args['id'];
+                $db->delete($table, $id);
+                $response->getBody()->write(json_encode(['message' => 'Deleted']));
+                
+                
+                return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+                
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
+                $status = 500;
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            if($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
+        }
+        
+        return $response->withStatus($status);
+    });
+    
+    $app->put('/{table}/update/{id}', function(Request $request, Response $response, $args) use ($db) {
+        
+        $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $table = $args['table'];
+        $status = 200;
+        
+        if($payload && hasAccess($payload, $table) && canModify($payload, $table, $args['id'], $db)) {
+            try {
+                $id = $args['id'];
+                $data = (array)$request->getParsedBody();
+                if($table == "personne_login") {
+                    $data['mp'] = hash("MD5", $data['mp']);
+                }
+                $db->edit($table, $id, $data);
+                $response->getBody()->write(json_encode(['message' => 'Updated', 'object' => $db->findBy($table, ['id' => $id])]));
+                
+                
+                return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+                
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
+                $status = 500;
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            if($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
+        }
+
+        return $response->withStatus($status);
+    });
+
+    $app->post('/{table}/add', function(Request $request, Response $response, $args) use ($db) {
+        
+        $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $table = $args['table'];
+        $status = 200;
+        
+        if($payload && hasAccess($payload, $table)) {
+            try {
+                $data = (array)$request->getParsedBody();
+                if($table == "personne_login") {
+                    $data['mp'] = hash("MD5", $data['mp']);
+                }
+                $id = $db->add($table, $data);
+                $response->getBody()->write(json_encode(['message' => 'Added', 'object' => $db->find($table, $id)]));
+                
+    
+                return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+    
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
+                $status = 500;
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            if($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
+        }
+
+        return $response->withStatus($status);
+    });
+
+    $app->get('/login/{role}/{login}/{password}', function(Request $request, Response $response, $args) use ($db) {
+        $status = 200;
+        
         try {
             $params = [
                 'login' => $args['login'],
@@ -108,118 +331,37 @@ return function (App $app, Database $db) {
             $user = $db->findBy("personne_login", $params);
 
             if($user) {
-                $fonction = $db->find($args["type"], $user["id"]) ? $args["type"] : null;
+                if ($args["role"] == "infimiere") {
+                    $rq = $db->find("infirmiere", $user["id"]);
+                    if ($rq["chef"]) {
+                        $fonction = "chef";
+                    } else {
+                        $fonction = $rq ? "infirmiere" : null;
+                    }
+                } else {
+                    $fonction = $db->find($args["role"], $user["id"]) ? $args["role"] : null;
+                }
             }
 
             $payload = [
                 'iat' => time(),
                 'exp' => time() + 3600,
                 'loggedInAs' => $user['id'],
-                'fonction' => $fonction
+                'fonction' => $fonction,
+                'accessType' => $fonction == "administrateur" || $fonction == "chef" ? "full" : "restricted",
             ];
 
             $jwt = JWT::encode($payload, "API-KEY", "HS256");
             $response->getBody()->write($jwt);
         } catch(Exception $e) {
             $response->getBody()->write($e->getMessage());
-            $response->withStatus(500);
+            $status = 500;
             $response->withHeader('Content-Type', 'html/text');
         }
 
-        return $response;
+        return $response->withStatus($status);
     });
-
-    $app->delete('/delete/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {   
-        
-        $verif = verifToken($request);
-
-        if($verif['payload']) {
-            try {
-                $table = $args['table'];
-                $id = $args['id'];
-                $db->delete($table, $id);
-                $response->getBody()->write(json_encode(['message' => 'Deleted']));
-                $response->withStatus(200);
     
-                return $response->withHeader('Content-Type', 'application/json');
-    
-            } catch (Exception $e) {
-                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
-                $response->withStatus(500);
-                $response->withHeader('Content-Type', 'html/text');
-            }
-        } else {
-            $response->getBody()->write($verif['error']);
-            $response->withStatus(401);
-            $response->withHeader('Content-Type', 'html/text');
-        }
-        
-        return $response;
-    });
-
-    $app->put('/update/{table}/{id}', function(Request $request, Response $response, $args) use ($db) {
-        
-        $verif = verifToken($request);
-
-        if($verif['payload']) {
-            try {
-                $table = $args['table'];
-                $id = $args['id'];
-                $data = (array)$request->getParsedBody();
-                if($table == "personne_login") {
-                    $data['mp'] = hash("MD5", $data['mp']);
-                }
-                $db->edit($table, $id, $data);
-                $response->getBody()->write(json_encode(['message' => 'Updated', 'object' => $db->findBy($table, ['id' => $id])]));
-                $response->withStatus(200);
-    
-                return $response->withHeader('Content-Type', 'application/json');
-    
-            } catch (Exception $e) {
-                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
-                $response->withStatus(500);
-                $response->withHeader('Content-Type', 'html/text');
-            }
-        } else {
-            $response->getBody()->write($verif['error']);
-            $response->withStatus(401);
-            $response->withHeader('Content-Type', 'html/text');
-        }
-
-        return $response;
-    });
-
-    $app->post('/add/{table}', function(Request $request, Response $response, $args) use ($db) {
-        
-        $verif = verifToken($request);
-
-        if($verif['payload']) {
-            try {
-                $table = $args['table'];
-                $data = (array)$request->getParsedBody();
-                if($table == "personne_login") {
-                    $data['mp'] = hash("MD5", $data['mp']);
-                }
-                $id = $db->add($table, $data);
-                $response->getBody()->write(json_encode(['message' => 'Added', 'object' => $db->find($table, $id)]));
-                $response->withStatus(200);
-    
-                return $response->withHeader('Content-Type', 'application/json');
-    
-            } catch (Exception $e) {
-                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>".$e->getMessage());
-                $response->withStatus(500);
-                $response->withHeader('Content-Type', 'html/text');
-            }
-        } else {
-            $response->getBody()->write($verif['error']);
-            $response->withStatus(401);
-            $response->withHeader('Content-Type', 'html/text');
-        }
-
-        return $response;
-    });
-
     $app->get('/verifToken', function(Request $request, Response $response, $args) {
         $verif = verifToken($request);
         $response->getBody()->write(json_encode($verif['payload'] ? $verif['payload'] : $verif['error']));
