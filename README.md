@@ -20,10 +20,12 @@ base : http://localhost/API-PPE4
 
 # CODES ERREURS
 
+```
 401 - Forbidden
 403 - Unauthorized
 404 - Not Found
 500 - Internal Server Error
+```
 
 # ACCES
 
