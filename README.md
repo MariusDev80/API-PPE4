@@ -31,7 +31,9 @@ base : http://localhost/API-PPE4
 
 Un full access permet la visualisation et modification de toutes les données des tables concernées, un restricted access ne permet que la visualisation et modification des données qui concernent la personne authentifiée.
 
+```
 Admin -> full access, toutes les tables
 Infirmiere en chef -> full access, tables : infirmiere, convalescence, patient, soins, soins_visite, visite, type_soins, temoignage
 Infirmiere -> restricted access, tables : visite
 Patient -> restricted access, tables : temoignages, visite
+```
