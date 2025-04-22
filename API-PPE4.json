@@ -1,0 +1,289 @@
+{
+  "name": "API Test",
+  "version": "1",
+  "items": [
+    {
+      "type": "http",
+      "name": "Add Record",
+      "filename": "Add Record.bru",
+      "seq": 6,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/{table}/add",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"key\": \"value\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Delete Record",
+      "filename": "Delete Record.bru",
+      "seq": 8,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/{table}/delete/{id}",
+        "method": "DELETE",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get All Records",
+      "filename": "Get All Records.bru",
+      "seq": 4,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/personne/all",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Get Record by ID",
+      "filename": "Get Record by ID.bru",
+      "seq": 5,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/{table}/{id}",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Login Admin",
+      "filename": "Login Admin.bru",
+      "seq": 2,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/login/administrateur/jboullier/jboullier",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {
+          "res": "let data = res.body; \nbru.setEnvVar(\"token\", data.token);"
+        },
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Login Patient",
+      "filename": "Login Patient.bru",
+      "seq": 1,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/login/patient/fantasio/fantasio",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {
+          "res": "let data = res.body; \nbru.setEnvVar(\"token\", data.token);"
+        },
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Update Record",
+      "filename": "Update Record.bru",
+      "seq": 7,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/{table}/update/{id}",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"key\": \"new_value\"\n}",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Verify Token",
+      "filename": "Verify Token.bru",
+      "seq": 3,
+      "request": {
+        "url": "http://localhost:{{port}}/API-PPE4/verifToken",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "none"
+        }
+      }
+    }
+  ],
+  "activeEnvironmentUid": "OSsPABNtew0Ifrt6TAhL3",
+  "environments": [
+    {
+      "variables": [
+        {
+          "name": "token",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NDQyMDU3ODAsImV4cCI6MTc0NDIwOTM4MCwibG9nZ2VkSW5BcyI6OCwiZm9uY3Rpb24iOiJhZG1pbmlzdHJhdGV1ciIsImFjY2Vzc1R5cGUiOiJmdWxsIn0.aJV_oNEjDOykv1o-M-AtLOfGmNLsUYPfCQ4219UM7BY",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "port",
+          "value": "8888",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ],
+      "name": "API PPE4"
+    }
+  ],
+  "brunoConfig": {
+    "version": "1",
+    "name": "API Test",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ],
+    "size": 0.0017147064208984375,
+    "filesCount": 10
+  }
+}

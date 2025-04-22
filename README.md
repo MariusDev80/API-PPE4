@@ -1,3 +1,9 @@
+# MISE EN PLACE 
+
+Le fichier ```API-PPE4.json``` est un fichier de conf à importer sur BRUNO. Il possède des requêtes pré-faites, vous pouvez modifier le port du localhost directement dans les variables d'environnement de BRUNO pour que les requêtes se réalisent bien.
+
+BRUNO (Equivalent de PostMan) : https://www.usebruno.com
+
 # ROUTES 
 
 base : http://localhost/API-PPE4

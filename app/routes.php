@@ -96,7 +96,11 @@ function verifToken(Request $request) {
 }
 
 function hasAccess($payload, $table) {
-    return in_array($table,ACCESS[$payload['fonction']]);
+    $verif = false;
+    if ($payload['fonction']) {
+        $verif = in_array($table, ACCESS[$payload['fonction']]);
+    }
+    return $verif;
 }
 
 function canModify($payload, $table, $id, $db) {
@@ -322,6 +326,7 @@ return function (App $app, Database $db) {
 
     $app->get('/login/{role}/{login}/{password}', function(Request $request, Response $response, $args) use ($db) {
         $status = 200;
+        $fonction = "";
         
         try {
             $params = [
@@ -352,11 +357,11 @@ return function (App $app, Database $db) {
             ];
 
             $jwt = JWT::encode($payload, "API-KEY", "HS256");
-            $response->getBody()->write($jwt);
+            $response->getBody()->write(json_encode(["token" => $jwt]));
         } catch(Exception $e) {
             $response->getBody()->write($e->getMessage());
             $status = 500;
-            $response->withHeader('Content-Type', 'html/text');
+            $response->withHeader('Content-Type', 'application/json');
         }
 
         return $response->withStatus($status);
