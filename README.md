@@ -4,6 +4,11 @@ Le fichier ```API-PPE4.json``` est un fichier de conf à importer sur BRUNO. Il 
 
 BRUNO (Equivalent de PostMan) : https://www.usebruno.com
 
+# DEMARRAGE 
+
+Lancer WAMP et placer le projet dans le dossier C:\wamp64\www s'il n'y est pas déjà.
+Ouvrir Bruno, importer la conf ```API-PPE4.json``` s'il n'est pas déja importée ou créér les requêtes manuellement.
+
 # ROUTES 
 
 base : http://localhost/API-PPE4

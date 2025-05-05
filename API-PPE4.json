@@ -8,7 +8,7 @@
       "filename": "Add Record.bru",
       "seq": 6,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/{table}/add",
+        "url": "http://localhost{{port}}/API-PPE4/{table}/add",
         "method": "POST",
         "headers": [
           {
@@ -41,7 +41,7 @@
       "filename": "Delete Record.bru",
       "seq": 8,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/{table}/delete/{id}",
+        "url": "http://localhost{{port}}/API-PPE4/{table}/delete/{id}",
         "method": "DELETE",
         "headers": [
           {
@@ -73,7 +73,7 @@
       "filename": "Get All Records.bru",
       "seq": 4,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/personne/all",
+        "url": "http://localhost{{port}}/API-PPE4/personne/all",
         "method": "GET",
         "headers": [
           {
@@ -105,7 +105,7 @@
       "filename": "Get Record by ID.bru",
       "seq": 5,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/{table}/{id}",
+        "url": "http://localhost{{port}}/API-PPE4/{table}/{id}",
         "method": "GET",
         "headers": [
           {
@@ -137,7 +137,7 @@
       "filename": "Login Admin.bru",
       "seq": 2,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/login/administrateur/jboullier/jboullier",
+        "url": "http://localhost{{port}}/API-PPE4/login/administrateur/jboullier/jboullier",
         "method": "GET",
         "headers": [],
         "params": [],
@@ -165,7 +165,7 @@
       "filename": "Login Patient.bru",
       "seq": 1,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/login/patient/fantasio/fantasio",
+        "url": "http://localhost{{port}}/API-PPE4/login/patient/fantasio/fantasio",
         "method": "GET",
         "headers": [],
         "params": [],
@@ -193,7 +193,7 @@
       "filename": "Update Record.bru",
       "seq": 7,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/{table}/update/{id}",
+        "url": "http://localhost{{port}}/API-PPE4/{table}/update/{id}",
         "method": "PUT",
         "headers": [
           {
@@ -226,7 +226,7 @@
       "filename": "Verify Token.bru",
       "seq": 3,
       "request": {
-        "url": "http://localhost:{{port}}/API-PPE4/verifToken",
+        "url": "http://localhost{{port}}/API-PPE4/verifToken",
         "method": "GET",
         "headers": [
           {
@@ -266,7 +266,7 @@
         },
         {
           "name": "port",
-          "value": "8888",
+          "value": "",
           "enabled": true,
           "secret": false,
           "type": "text"
