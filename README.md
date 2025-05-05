@@ -9,6 +9,15 @@ BRUNO (Equivalent de PostMan) : https://www.usebruno.com
 Lancer WAMP et placer le projet dans le dossier C:\wamp64\www s'il n'y est pas déjà.
 Ouvrir Bruno, importer la conf ```API-PPE4.json``` s'il n'est pas déja importée ou créér les requêtes manuellement.
 
+## Utilisateurs 
+
+PS : le login et le mdp sont identiques
+
+Administrateur : jboullier
+Infirmière en chef : fnightingale
+Infirmière : lwald
+Patient : fantasio
+
 # ROUTES 
 
 base : http://localhost/API-PPE4
