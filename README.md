@@ -1,6 +1,6 @@
 # MISE EN PLACE 
 
-Le fichier ```API-PPE4.json``` est un fichier de conf à importer sur BRUNO. Il possède des requêtes pré-faites, vous pouvez modifier le port du localhost directement dans les variables d'environnement de BRUNO pour que les requêtes se réalisent bien. Pensez a bien séléctionner l'environnement API PPE4 pour le bon fonctionnement des requêtes.
+Le fichier ```API-PPE4.json``` est un fichier de conf à importer sur BRUNO. Il possède des requêtes pré-faites, vous pouvez modifier le port du localhost directement dans les variables d'environnement de BRUNO pour que les requêtes se réalisent bien si le port pose problème. Pensez à bien séléctionner l'environnement API PPE4 pour le bon fonctionnement des requêtes.
 
 BRUNO (Equivalent de PostMan) : https://www.usebruno.com
 
@@ -45,3 +45,9 @@ Infirmiere en chef -> full access, tables : infirmiere, convalescence, patient, 
 Infirmiere -> restricted access, tables : visite
 Patient -> restricted access, tables : temoignages, visite
 ```
+
+# FICHIERS DU PROJET
+
+Routes - app/routes.php : comporte les routes de l'API et le traitement du token/droits d'accès
+Index - public/index.php : initialise l'API et créé une instance de la classe Database
+Database - src/Service/Database.php : créé la connexion à la base de données et contient des fonctions de traitements des données (add/edit/update/delete/etc.)
