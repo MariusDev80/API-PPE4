@@ -6,7 +6,7 @@
       "type": "http",
       "name": "Add Record",
       "filename": "Add Record.bru",
-      "seq": 6,
+      "seq": 8,
       "request": {
         "url": "http://localhost{{port}}/API-PPE4/{table}/add",
         "method": "POST",
@@ -39,7 +39,7 @@
       "type": "http",
       "name": "Delete Record",
       "filename": "Delete Record.bru",
-      "seq": 8,
+      "seq": 10,
       "request": {
         "url": "http://localhost{{port}}/API-PPE4/{table}/delete/{id}",
         "method": "DELETE",
@@ -71,7 +71,7 @@
       "type": "http",
       "name": "Get All Records",
       "filename": "Get All Records.bru",
-      "seq": 4,
+      "seq": 6,
       "request": {
         "url": "http://localhost{{port}}/API-PPE4/personne/all",
         "method": "GET",
@@ -103,9 +103,9 @@
       "type": "http",
       "name": "Get Record by ID",
       "filename": "Get Record by ID.bru",
-      "seq": 5,
+      "seq": 7,
       "request": {
-        "url": "http://localhost{{port}}/API-PPE4/{table}/{id}",
+        "url": "http://localhost{{port}}/API-PPE4/personne/5",
         "method": "GET",
         "headers": [
           {
@@ -191,7 +191,7 @@
       "type": "http",
       "name": "Update Record",
       "filename": "Update Record.bru",
-      "seq": 7,
+      "seq": 9,
       "request": {
         "url": "http://localhost{{port}}/API-PPE4/{table}/update/{id}",
         "method": "PUT",
@@ -224,7 +224,7 @@
       "type": "http",
       "name": "Verify Token",
       "filename": "Verify Token.bru",
-      "seq": 3,
+      "seq": 4,
       "request": {
         "url": "http://localhost{{port}}/API-PPE4/verifToken",
         "method": "GET",
@@ -251,15 +251,75 @@
           "mode": "none"
         }
       }
+    },
+    {
+      "type": "http",
+      "name": "ChangeStatus",
+      "filename": "ChangeStatus.bru",
+      "seq": 5,
+      "request": {
+        "url": "http://localhost{{port}}/API-PPE4/changeStatus/17",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "Authorization",
+            "value": "Bearer {{token}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {},
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "name": "Login Infirmière",
+      "filename": "Login Infirmière.bru",
+      "seq": 3,
+      "request": {
+        "url": "http://localhost{{port}}/API-PPE4/login/infirmiere/lwald/lwald",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none",
+          "formUrlEncoded": [],
+          "multipartForm": [],
+          "file": []
+        },
+        "script": {
+          "res": "let data = res.body; \nbru.setEnvVar(\"token\", data.token);"
+        },
+        "vars": {},
+        "assertions": [],
+        "tests": "",
+        "docs": "",
+        "auth": {
+          "mode": "inherit"
+        }
+      }
     }
   ],
-  "activeEnvironmentUid": "OSsPABNtew0Ifrt6TAhL3",
+  "activeEnvironmentUid": "pKk09mlnHc4i6UjgNKrwo",
   "environments": [
     {
       "variables": [
         {
           "name": "token",
-          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NDQyMDU3ODAsImV4cCI6MTc0NDIwOTM4MCwibG9nZ2VkSW5BcyI6OCwiZm9uY3Rpb24iOiJhZG1pbmlzdHJhdGV1ciIsImFjY2Vzc1R5cGUiOiJmdWxsIn0.aJV_oNEjDOykv1o-M-AtLOfGmNLsUYPfCQ4219UM7BY",
+          "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NDgyNDQ2NjIsImV4cCI6MTc0ODI0ODI2MiwibG9nZ2VkSW5BcyI6MywiZm9uY3Rpb24iOiJpbmZpcm1pZXJlIiwiYWNjZXNzVHlwZSI6InJlc3RyaWN0ZWQifQ.ee9I-dwPyC-YTN5fKLuq5LzMW37NZb7Ui6DauiwMjnE",
           "enabled": true,
           "secret": false,
           "type": "text"
@@ -283,7 +343,7 @@
       "node_modules",
       ".git"
     ],
-    "size": 0.0017147064208984375,
+    "size": 0.0018892288208007812,
     "filesCount": 10
   }
 }

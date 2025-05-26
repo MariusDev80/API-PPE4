@@ -273,11 +273,18 @@ class Database
 		}
 	}
 
-	public function rawExecute(string $sql, array $parameters = []): PDOStatement
-	{
+	public function rawExecute(string $sql, array $parameters = [])
+	{	
+		$data = null;
+		$nbTuples = 0;
+
 		$query = $this->connection->prepare($sql);
 		if ($query->execute($parameters)) {
-			return $query;
+			while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+				$data[$nbTuples] = $row;
+				$nbTuples++;
+			}
+			return $data;
 		} else {
 			throw new Exception($query->errorCode());
 		}
