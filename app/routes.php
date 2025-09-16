@@ -40,13 +40,18 @@ const ACCESS = [
         "temoignage"
     ],
     "infirmiere" => [
-        "visite"
+        "visite",
+        "personne"
     ],
     "patient" => [
         "visite",
         "temoignage"
     ]
 ];
+
+function isActive($user) {
+    return $user && $user['nb_tentative_erreur'] < 4;
+}
 
 function verifToken(Request $request) {
     
@@ -118,6 +123,52 @@ return function (App $app, Database $db) {
         $response->getBody()->write('Hello, World!');
         return $response;
     });
+
+    $app->get('/changeStatus/{id}', function(Request $request, Response $response, $args) use ($db) {
+        $verif = verifToken($request);
+        $payload = (array)$verif['payload'];
+        $status = 200;
+    
+        if ($payload && $payload['fonction'] === 'administrateur' && $args['id'] != $payload['loggedInAs']) {
+            try {
+                $id = $args['id'];
+    
+                $user = $db->findBy("personne_login", ['id' => $id]);
+    
+                if ($user) {
+                    $newAttempts = isActive($user) ? 4 : 0;
+    
+                    $db->edit('personne_login', $id, ['nb_tentative_erreur' => $newAttempts]);
+    
+                    $response->getBody()->write(json_encode([
+                        'message' => 'Status updated successfully',
+                        'newAttempts' => $newAttempts
+                    ]));
+                } else {
+                    $response->getBody()->write(json_encode(['error' => 'User not found']));
+                    $status = 404;
+                }
+    
+                return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+            } catch (Exception $e) {
+                $response->getBody()->write("<h2>500 Internal Server Error</h2><br>" . $e->getMessage());
+                $status = 500;
+                $response->withHeader('Content-Type', 'html/text');
+            }
+        } else {
+            if ($payload) {
+                $response->getBody()->write("<h2>403 Forbidden</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 403;
+            } else {
+                $response->getBody()->write("<h2>401 Unauthorized</h2><br>");
+                $response->withHeader('Content-Type', 'html/text');
+                $status = 401;
+            }
+        }
+    
+        return $response->withStatus($status);
+    });
     
     $app->get('/{table}/all', function (Request $request, Response $response, $args) use ($db) {
         
@@ -129,10 +180,28 @@ return function (App $app, Database $db) {
         if($payload && hasAccess($payload, $table)) {
             try {
 
-                if($payload['accessType'] == "restricted") {
-                    $data = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
+                if($table == "personne" && $payload['accessType'] == 'restricted') {
+                    $data = $db->rawExecute(
+                        "SELECT DISTINCT p.*,pt.personne_de_confiance FROM personne p INNER JOIN visite v ON p.id = v.patient INNER JOIN patient pt ON p.id = pt.id WHERE v.infirmiere = :infirmiere;",
+                        ['infirmiere' => $payload['loggedInAs']]);
+                    
+                    if($data) {
+                        foreach($data as $key => $value) {
+                            if($data[$key]['personne_de_confiance'] == null) {
+                                $data[$key]['personne_de_confiance'] = [];
+                            } else {
+                                $data[$key]['personne_de_confiance'] = $db->findBy("personne", ['id' => $value['personne_de_confiance']]);
+                            }
+                        }
+                    } else {
+                        $data = ["message" => "No data found"];
+                    }
                 } else {
-                    $data = $db->list($table);
+                    if($payload['accessType'] == "restricted") {
+                        $data = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
+                    } else {
+                        $data = $db->list($table);
+                    }
                 }
 
                 $response->getBody()->write(json_encode($data ? $data : []));
@@ -170,17 +239,38 @@ return function (App $app, Database $db) {
         if($payload && hasAccess($payload, $table)) {
             try {
 
-                if($payload['accessType'] == "restricted") {
-                    $data = null;
-                    $req = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
-                    foreach($req as $key => $value) {
-                        if($value['id'] == $args['id']) {
-                            $data = $value;
-                            break;
+                if($table == "personne" && $payload['accessType'] == 'restricted') {
+                    $id = $args['id'];
+                    $data = $db->rawExecute(
+                        "SELECT DISTINCT p.*,pt.personne_de_confiance FROM personne p INNER JOIN visite v ON p.id = v.patient INNER JOIN patient pt ON p.id = pt.id WHERE v.infirmiere = :infirmiere AND p.id = :id;",
+                        [
+                            'infirmiere' => $payload['loggedInAs'],
+                            'id' => $id]);
+                    
+                    if($data) {
+                        foreach($data as $key => $value) {
+                            if($data[$key]['personne_de_confiance'] == null) {
+                                $data[$key]['personne_de_confiance'] = [];
+                            } else {
+                                $data[$key]['personne_de_confiance'] = $db->findBy("personne", ['id' => $value['personne_de_confiance']]);
+                            }
                         }
+                    } else {
+                        $data = ["message" => "No data found"];
                     }
                 } else {
-                    $data = $db->listHaving($table, "id", $args['id']);
+                    if($payload['accessType'] == "restricted") {
+                        $data = null;
+                        $req = $db->listHaving($table, $payload['fonction'], $payload['loggedInAs']);
+                        foreach($req as $key => $value) {
+                            if($value['id'] == $args['id']) {
+                                $data = $value;
+                                break;
+                            }
+                        }
+                    } else {
+                        $data = $db->listHaving($table, "id", $args['id']);
+                    }
                 }
 
                 $response->getBody()->write(json_encode($data ? $data : []));
@@ -335,7 +425,7 @@ return function (App $app, Database $db) {
             ];
             $user = $db->findBy("personne_login", $params);
 
-            if($user) {
+            if($user && isActive($user)) {
                 if ($args["role"] == "infimiere") {
                     $rq = $db->find("infirmiere", $user["id"]);
                     if ($rq["chef"]) {
@@ -346,18 +436,23 @@ return function (App $app, Database $db) {
                 } else {
                     $fonction = $db->find($args["role"], $user["id"]) ? $args["role"] : null;
                 }
+
+                $payload = [
+                    'iat' => time(),
+                    'exp' => time() + 3600,
+                    'loggedInAs' => $user['id'],
+                    'fonction' => $fonction,
+                    'accessType' => $fonction == "administrateur" || $fonction == "chef" ? "full" : "restricted",
+                ];
+
+                $jwt = JWT::encode($payload, "API-KEY", "HS256");
+                $response->getBody()->write(json_encode(["token" => $jwt]));
+            } else {
+                $response->getBody()->write(json_encode(["error" => "Unauthorized"]));
+                $status = 401;
             }
 
-            $payload = [
-                'iat' => time(),
-                'exp' => time() + 3600,
-                'loggedInAs' => $user['id'],
-                'fonction' => $fonction,
-                'accessType' => $fonction == "administrateur" || $fonction == "chef" ? "full" : "restricted",
-            ];
 
-            $jwt = JWT::encode($payload, "API-KEY", "HS256");
-            $response->getBody()->write(json_encode(["token" => $jwt]));
         } catch(Exception $e) {
             $response->getBody()->write($e->getMessage());
             $status = 500;
@@ -366,7 +461,7 @@ return function (App $app, Database $db) {
 
         return $response->withStatus($status);
     });
-    
+
     $app->get('/verifToken', function(Request $request, Response $response, $args) {
         $verif = verifToken($request);
         $response->getBody()->write(json_encode($verif['payload'] ? $verif['payload'] : $verif['error']));
