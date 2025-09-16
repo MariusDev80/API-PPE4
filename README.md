@@ -9,6 +9,8 @@ BRUNO (Equivalent de PostMan) : https://www.usebruno.com
 Lancer WAMP et placer le projet dans le dossier C:\wamp64\www s'il n'y est pas déjà.
 Ouvrir Bruno, importer la conf ```API-PPE4.json``` s'il n'est pas déja importée ou créér les requêtes manuellement.
 
+Si jamais une erreur lié au mot de passe de l'utilisateur root est présente au lancement de la première requête, il faut alors le modifier dans ```src/Service/Database.php```.
+
 ## Utilisateurs 
 
 PS : le login et le mdp sont identiques
