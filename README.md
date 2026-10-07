@@ -1,3 +1,7 @@
+# NATURE PROJET
+
+Ce projet est une réalisation faite au cours de mon BTS SIO en 2024. Il avait pour but de se familiariser avec les APIs et leur utilisation.
+
 # MISE EN PLACE 
 
 Le fichier ```API-PPE4.json``` est un fichier de conf à importer sur BRUNO. Il possède des requêtes pré-faites, vous pouvez modifier le port du localhost directement dans les variables d'environnement de BRUNO pour que les requêtes se réalisent bien si le port pose problème. Pensez à bien séléctionner l'environnement API PPE4 pour le bon fonctionnement des requêtes.
